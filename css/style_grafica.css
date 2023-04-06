@@ -1,0 +1,31 @@
+
+#sketch-container {
+    margin: 20px;
+    margin-left: 100px;
+}
+
+#point-list {
+    width: 200px;
+    border: 1px solid black;
+    padding: 10px;
+}
+
+#point-list ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+        
+canvas {
+    display: flex;
+    margin-top: 0 auto;  
+}
+
+    #point-list li {
+    list-style-type: none;
+    margin-bottom: 5px;
+}
+#sketch-container{
+    width: 500px;
+    height: 500px;
+}

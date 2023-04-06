@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>p5.js example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <style>
+        #container {
+            display: flex;
+            justify-content: center; /* Centra el contenido horizontalmente */
+            margin-left: 50px;
+          }
+        #point-list-div {
+            width: 200px;
+            padding: 10px;
+            margin-left: 50px;
+        }
+
+        #point-list {
+            width: 200px;
+            border: 1px solid black;
+            padding: 10px;
+        }
+
+        #point-list ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+          }
+        
+      canvas {
+        display: flex;
+        margin-top: 0 auto;
+      }
+
+      #point-list li {
+        list-style-type: none;
+        margin-bottom: 5px;
+      }
+      
+      
+    </style>
+  </head>
+  <body>
+    <h1>La mejor ruta es:</h1>
+    <p>Por favor selecciona los siguientes datos</p>
+
+    <div class="etiquetas">
+        <Label>Punto de Partida</Label>
+        <input type="text" name="DCasa" id="DCasa" value=" Casa (24.5, 43.125)" disabled style="width: 130px;">
+
+        <Label>No. de Destinos</Label>
+        <input type="Number" name="NDestino" id="NDestino" value="" disabled style="width: 50px;">
+
+        <Label>No. de Interaciones</Label>
+        <input type="Number" name="NInteraciones" id="NInteraciones" value="10000"  style="width: 55px;">
+
+
+    </div>
+
+    <div id="container">
+        <div id="sketch-container">
+        </div>
+
+        <div id="point-list-div">
+            <p>Destinos seleccionados</p>
+            <ul id="point-list"></ul>
+        </div>
+      
+      
+    </div>
+
+    <button id="draw-lines">Calcular</button>
+    <script>
+        
+      // Define some constants for the grid
+      const NUM_COLS = 10;
+      const NUM_ROWS = 10;
+      const CELL_SIZE = 50;
+      const GRID_COLOR = 200;
+
+      // Define some variables for the points
+        let points = [];
+
+      // Define some variables for the sketch and canvas
+        let sketch;
+        let canvas;
+
+      // Define the start point
+        let startPoint = {
+            x: 24.5,
+            y: 43.125
+        };
+
+      function setup() {
+        // Create the canvas
+        canvas = createCanvas(NUM_COLS * CELL_SIZE, NUM_ROWS * CELL_SIZE);
+        canvas.parent('sketch-container');
+
+        // Set the stroke color to gray
+        stroke(GRID_COLOR);
+
+        // Create the grid of rectangles
+        for (let x = 0; x < NUM_COLS; x++) {
+          for (let y = 0; y < NUM_ROWS; y++) {
+            rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+          }
+        }
+
+        // Attach a click handler to the canvas
+        canvas.mouseClicked(addPoint);
+
+        // Attach a click handler to the "Draw Lines" button
+        const drawLinesButton = document.getElementById("draw-lines");
+        drawLinesButton.addEventListener("click", drawLines);
+
+        // Draw the start point
+        fill(0, 255, 0);
+        ellipse(startPoint.x, startPoint.y, 10, 10);
+      }
+
+      function addPoint() {
+        // Add a point to the array of points
+        const point = {
+          x: mouseX,
+          y: mouseY
+        };
+        points.push(point);
+
+        // Draw a red point at the mouse position
+        fill(255, 0, 0);
+        ellipse(mouseX, mouseY, 10, 10);
+
+        // Add the point to the list
+        const pointList = document.getElementById("point-list");
+        const pointListItem = document.createElement("li");
+        pointListItem.innerText = `(${point.x}, ${point.y})`;
+        pointList.appendChild(pointListItem);
+      }
+
+      function drawLines() {
+
+        // Punto de partida
+        const startPoint = {
+            x: 24.5,
+            y: 43.125
+        };
+        points.unshift(startPoint);
+
+
+        // Set the stroke color to red
+        stroke(255, 0, 0);
+
+        // Draw lines between the points
+        for (let i = 0; i < points.length - 1; i++) {
+          const p1 = points[i];
+          const p2 = points[i + 1];
+          line(p1.x, p1.y, p2.x, p2.y);
+        }
+      }
+
+      // Create the p5.js sketch and attach it to the page
+      sketch = new p5(function(){}, 'sketch-container');
+      sketch.setup = setup;
+    </script>
+  </body>
+</html>
