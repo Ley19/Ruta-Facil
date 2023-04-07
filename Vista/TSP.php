@@ -22,6 +22,12 @@
 
     </head>
     <body>
+        
+    <style>
+        .mostrar-body {
+            display: block !important;
+        }
+    </style>
         <!-- Menu-->
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
@@ -67,7 +73,7 @@
                             <div class="card-body">
                             
                                 <Label>Punto de Partida</Label>
-                                <input type="text" name="DCasa" id="DCasa" value=" Casa(24.5,43.125)" disabled style="width: 140px;">
+                                <input type="text" name="DCasa" id="DCasa" value="(<?php echo $longitud; ?>,<?php echo $latitud; ?>)" disabled style="width: 190px;">
                                 
                                 <Label>No. de Destinos</Label>
                                 <input type="Number" name="NDestino" id="NDestino" value="0" disabled style="width: 50px;">
@@ -84,7 +90,6 @@
                 </div>
                 <!-- Side widgets-->
                 <div class="col-lg-4">
-                    <!-- Search widget-->
                     <div class="card mb-4">
                         <div class="card-header">Destinos seleccionados</div>
                         <div class="card-body">
@@ -95,13 +100,26 @@
                         <button class="btn btn-primary" id="draw-lines">Calcular</button>
                         <button class="btn btn-danger" id="clear-points">Borrar</button>
                     </div>
+                    <div class="card mb-4">
+                                <div class="card-header" onclick="mostrarBody()">Destinos Guardados</div>
+                                <div class="card-body" id="card-body" style="display: none;">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Nombre</th>
+                                                <th>Longitud</th>
+                                                <th>Latitud</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-destinos">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                 </div>
             </div>
         </div>
-        <!-- Footer-->
-        <footer class="py-5 bg-dark">
-            <div class="container"><p class="m-0 text-center text-white">TSP - Abril 2023</p></div>
-        </footer>
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->
@@ -110,7 +128,7 @@
         <script>
         
             // Definir algunas constantes
-            const NUM_COLS = 10;
+            const NUM_COLS = 14;
             const NUM_ROWS = 10;
             const CELL_SIZE = 50;
             const GRID_COLOR = 200;
@@ -121,13 +139,28 @@
             // Definir algunas variables para sketch y canvas
               let sketch;
               let canvas;
+
+            // Contador de puntos
+              let pointCount = 1;
       
             // Punto de inicio
-              let startPoint = {
-                  x: 24.5,
-                  y: 43.125
-              };
-      
+            let startPoint = {
+                x: <?php echo $longitud; ?>,
+                y: <?php echo $latitud; ?>
+            };
+
+            // Añadir el punto de inicio a la lista HTML
+            const pointList = document.getElementById("point-list");
+            const pointListItem = document.createElement("li");
+            pointListItem.innerText = `Inicio.- (${startPoint.x}, ${startPoint.y})`;
+            pointList.appendChild(pointListItem);
+
+            //Añadir imagen al punto de partida en el canvas
+            let startPointImg;
+            function preload() {
+                startPointImg = loadImage('../assets/img/casa.png');
+            }
+
             function setup() {
               // Crear el canvas
               canvas = createCanvas(NUM_COLS * CELL_SIZE, NUM_ROWS * CELL_SIZE);
@@ -151,42 +184,51 @@
               drawLinesButton.addEventListener("click", drawLines);
       
               // Se coloca el punto de inicio
-              fill(0, 255, 0);
-              ellipse(startPoint.x, startPoint.y, 10, 10);
+                image(startPointImg, startPoint.x, startPoint.y, 20, 20);
+                fill(0, 255, 0);
+                ellipse(startPoint.x, startPoint.y, 10, 10);
             }
       
             function addPoint() {
-              // Añadir punto de inicio al array
-              const point = {
-                x: mouseX,
-                y: mouseY
-              };
-              points.push(point);
-      
-              // Añadir punto roo
-              fill(255, 0, 0);
-              ellipse(mouseX, mouseY, 10, 10);
-      
-              // Añadir los puntos a la lista
-              const pointList = document.getElementById("point-list");
-              const pointListItem = document.createElement("li");
-              pointListItem.innerText = `(${point.x}, ${point.y})`;
-              pointList.appendChild(pointListItem);
+                // Añadir punto de inicio al array
+                const point = {
+                    x: mouseX,
+                    y: mouseY
+                };
+                points.push(point);
 
-              // Actualizar el valor del input con el número de puntos
+                // Añadir punto roo
+                fill(255, 0, 0);
+                ellipse(mouseX, mouseY, 10, 10);
+
+                // Agregar número al punto
+                fill(0);
+                text(pointCount, mouseX - 10, mouseY - 10);
+
+                // Añadir los puntos a la lista
+                const pointList = document.getElementById("point-list");
+                const pointListItem = document.createElement("li");
+                pointListItem.innerText = `${pointCount}.-  (${point.x}, ${point.y})`;
+                pointList.appendChild(pointListItem);
+
+                // Actualizar el valor del input con el número de puntos
                 const numPoints = points.length;
                 const numDestinoInput = document.getElementById("NDestino");
                 numDestinoInput.value = numPoints;
 
+                // Incrementar el contador de puntos
+                pointCount++;
             }
+
       
             function drawLines() {
       
-              // Punto de partida
-              const startPoint = {
-                  x: 24.5,
-                  y: 43.125
-              };
+            // Punto de partida
+            let startPoint = {
+                x: <?php echo $longitud; ?>,
+                y: <?php echo $latitud; ?>
+            };
+            
               points.unshift(startPoint);
       
               // Color rojo del punto de inicio
@@ -198,27 +240,26 @@
                 const p2 = points[i + 1];
                 line(p1.x, p1.y, p2.x, p2.y);
               }
+
+              // Dibujar una línea desde el último punto al punto de inicio
+                stroke(0, 255, 0); 
+                line(points[points.length - 1].x, points[points.length - 1].y, startPoint.x, startPoint.y);
+
             }
 
             // Obtener el botón de borrar puntos
             const clearPointsButton = document.getElementById("clear-points");
-
             
             clearPointsButton.addEventListener("click", function() {
-
-                // Limpiar la lista de puntos
-                const pointList = document.getElementById("point-list");
-                pointList.innerHTML = "";
-
-                // Limpiar el canvas
-                clear();
-
-                // Reiniciar el arreglo de puntos
-                points = [];
+                //Añadir codigo por que aun tenia errores
             });
 
-      
-          </script>
+            function mostrarBody() {
+                var cardBody = document.getElementById("card-body");
+                cardBody.classList.toggle("mostrar-body");
+            }
+
+        </script>
 
     </body>
 </html>

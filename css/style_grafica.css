@@ -1,7 +1,6 @@
 
 #sketch-container {
     margin: 20px;
-    margin-left: 100px;
 }
 
 #point-list {
@@ -24,8 +23,4 @@ canvas {
     #point-list li {
     list-style-type: none;
     margin-bottom: 5px;
-}
-#sketch-container{
-    width: 500px;
-    height: 500px;
 }

@@ -1,4 +1,5 @@
-<?php include('user_menu.php'); ?>
+<?php include('user_menu.php');
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -20,18 +21,12 @@
         <link href="../css/styles.css" rel="stylesheet" />
         <link href="../css/style_grafica.css" rel="stylesheet" />
 
-        
-
     </head>
     <body>
         <style>
             .mostrar-body {
                 display: block !important;
             }
-            .mostrar-formulario {
-                display: block !important;
-            }
-
         </style>
         <!-- Menu-->
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -84,11 +79,11 @@
                                 <Label>Rol</Label>
                                 <input type="text" name="Rol" id="Rol" value="<?php echo $rol; ?>" disabled style="width: 140px;">
                             </div>
-                            
                             <div class="card-body">
-                                <Label>Coordenadas Casa:</Label>
-                                <input type="text" name="CoordenadaX" id="CoordenadaX" value="<?php echo $latitud; ?>" style="width: 120px;">
-                                <input type="text" name="CoordenadaY" id="CoordenadaY" value="<?php echo $longitud; ?>" style="width: 120px;"> 
+                                <Label>Punto de inicio: </Label>
+                                <input type="number" name="CoordenadaX" id="CoordenadaX" value="<?php echo $longitud; ?>" style="width: 120px;">
+                                <input type="number" name="CoordenadaY" id="CoordenadaY" value="<?php echo $latitud; ?>" style="width: 120px;"> 
+                                <button class='btn btn-update' onclick="actualizarDatos()"> <img src='../assets/img/editar.png' alt='Editar'></button>
                             </div>
                         </div>
                     </section>
@@ -97,20 +92,22 @@
                 <div class="col-lg-4">
                     <div class="container">
                         <div class="row">
-                            <div class="card mb-4">
-                                <div class="card-header" onclick="mostrarFormulario()">Agregar Destino</div>
-                                    <div class="card-body" id="formulario-destino" style="display: none;">
+
+                        <div class="card mb-4">
+                                <div class="card-header">Agregar Destino</div>
+                                    <div class="card-body">
                                         <form id="formulario-destino">
                                             <div class="form-group">
                                                 <label for="nombre">Nombre:</label>
                                                 <input type="text" class="form-control" id="nombre" name="nombre" required style="width:200px;">
+                                                
                                             </div>
 
                                             <table class="table">
                                                 <thead>
                                                     <tr>
-                                                        <th><label for="latitud">Latitud (Y)</label></th>
-                                                        <th><label for="longitud">Longitud (X)</label></th>
+                                                        <th><label for="latitud">Longitud (X)</label></th>
+                                                        <th><label for="longitud">Latitud (Y)</label></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody >
@@ -130,8 +127,8 @@
                                         <thead>
                                             <tr>
                                                 <th>Nombre</th>
-                                                <th>Latitud</th>
                                                 <th>Longitud</th>
+                                                <th>Latitud</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
@@ -145,10 +142,7 @@
                     </div>
                 </div>
         </div>
-        <!-- Footer-->
-        <footer class="py-5 bg-dark">
-            <div class="container"><p class="m-0 text-center text-white">TSP - Abril 2023</p></div>
-        </footer>
+  
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->
@@ -164,14 +158,26 @@
                 var cardBody = document.getElementById("card-body");
                 cardBody.classList.toggle("mostrar-body");
             }
-            function mostrarFormulario() {
-                var formulario = document.getElementById("formulario-destino");
-                formulario.classList.toggle("mostrar-formulario");
+
+            function actualizarDatos() {
+            // Obtener los valores actualizados de los campos de entrada
+            var longitud = document.getElementById("CoordenadaX").value;
+            var latitud = document.getElementById("CoordenadaY").value;
+
+            // Crear la solicitud AJAX
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                // Mostrar el mensaje de datos actualizados
+                alert("Datos actualizados correctamente");
+                }
+            };
+            xmlhttp.open("POST", "actualizar_datos.php", true);
+            xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xmlhttp.send("longitud=" + longitud + "&latitud=" + latitud);
             }
 
         </script>
-
-
 
     </body>
 </html>
