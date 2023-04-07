@@ -1,4 +1,6 @@
-<?php include('user_menu.php'); ?>
+<?php 
+    include('user_menu.php'); 
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +33,8 @@
         <!-- Menu-->
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
-                <a class="navbar-brand" href="#!">Problema del Agente Viajero</a>
+                <img src="../assets/img/icono.png" alt="" style="width: 30px;">
+                <a class="navbar-brand" href="#!">- Problema del Agente Viajero -</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
@@ -101,22 +104,26 @@
                         <button class="btn btn-danger" id="clear-points">Borrar</button>
                     </div>
                     <div class="card mb-4">
-                                <div class="card-header" onclick="mostrarBody()">Destinos Guardados</div>
-                                <div class="card-body" id="card-body" style="display: none;">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Nombre</th>
-                                                <th>Longitud</th>
-                                                <th>Latitud</th>
-                                                <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tabla-destinos">
-                                        </tbody>
-                                    </table>
-                                </div>
+                        <div class="card-header" onclick="mostrarBody()">Destinos Guardados</div>
+                            <div class="card-body" id="card-body" style="display: none;">
+                                 <table class="table" id="tabla-destinos-guardados">
+                                     <thead>
+                                        <tr>
+                                            <th style="width: 30px;">Nombre</th>
+                                            <th style="width: 30px;">Longitud</th>
+                                            <th style="width: 30px;">Latitud</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php 
+                                        include 'tabla_destinos_guardados.php';
+                                    ?>
+                                    </tbody>
+                                </table>
                             </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -220,7 +227,6 @@
                 pointCount++;
             }
 
-      
             function drawLines() {
       
             // Punto de partida
@@ -259,6 +265,49 @@
                 cardBody.classList.toggle("mostrar-body");
             }
 
+            // Seleccionar todos los botones de "Añadir" y agregar un listener a cada uno
+            const addPointButtons = document.querySelectorAll('.add-point-button');
+            addPointButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const longitud = button.dataset.longitud;
+                    const latitud = button.dataset.latitud;
+                    addPointToCanvas(Number(longitud), Number(latitud));
+                });
+            });
+
+            // Agregar un punto al canvas y actualizar la lista HTML
+            function addPointToCanvas(longitud, latitud) {
+                // Añadir punto al array
+                const point = {
+                    x: longitud,
+                    y: latitud
+                };
+                points.push(point);
+
+                // Dibujar el punto
+                fill(255, 0, 0);
+                ellipse(longitud, latitud, 10, 10);
+
+                // Agregar número al punto
+                fill(0);
+                text(pointCount, longitud - 10, latitud - 10);
+
+                // Añadir el punto a la lista
+                const pointList = document.getElementById("point-list");
+                const pointListItem = document.createElement("li");
+                pointListItem.innerText = `${pointCount}.- (${longitud}, ${latitud})`;
+                pointList.appendChild(pointListItem);
+
+                // Actualizar el valor del input con el número de puntos
+                const numPoints = points.length;
+                const numDestinoInput = document.getElementById("NDestino");
+                numDestinoInput.value = numPoints;
+
+                // Incrementar el contador de puntos
+                pointCount++;
+            }
+
+            
         </script>
 
     </body>
