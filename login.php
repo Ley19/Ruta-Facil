@@ -31,7 +31,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (mysqli_num_rows($result) == 1) {
       //echo "¡Bienvenido, $username!";
-      header("Location: Vista/info.html");
+      session_start();
+      $_SESSION["username"] = $username;
+      header("Location: Vista/info.php");
     } else {
       echo "El nombre de usuario o la contraseña son incorrectos.";
     }
