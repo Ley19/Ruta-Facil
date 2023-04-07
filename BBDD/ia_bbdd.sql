@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 07-04-2023 a las 02:56:09
+-- Tiempo de generación: 07-04-2023 a las 06:13:54
 -- Versión del servidor: 10.4.27-MariaDB
 -- Versión de PHP: 8.2.0
 
@@ -30,8 +30,8 @@ SET time_zone = "+00:00";
 CREATE TABLE `destinos` (
   `id` int(6) UNSIGNED NOT NULL,
   `nombre` varchar(50) NOT NULL,
-  `latitud` float(10,6) NOT NULL,
-  `longitud` float(10,6) NOT NULL
+  `latitud` float(10,2) NOT NULL,
+  `longitud` float(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -39,8 +39,10 @@ CREATE TABLE `destinos` (
 --
 
 INSERT INTO `destinos` (`id`, `nombre`, `latitud`, `longitud`) VALUES
-(4, 'Justin', 24.799999, 34.700001),
-(6, 'Luis', 200.000000, 58.000000);
+(6, 'Luis', 200.00, 58.00),
+(7, 'maria', 38.00, 76.00),
+(8, 'Rene', 64.00, 64.00),
+(9, 'Pepe', 56.00, 76.00);
 
 -- --------------------------------------------------------
 
@@ -54,8 +56,8 @@ CREATE TABLE `usuarios` (
   `nombre` varchar(20) NOT NULL,
   `contrasena` int(10) NOT NULL,
   `rol` varchar(20) NOT NULL,
-  `latitud` float(10,6) DEFAULT NULL,
-  `longitud` float(10,6) DEFAULT NULL
+  `latitud` float(10,2) DEFAULT NULL,
+  `longitud` float(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -63,7 +65,8 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `usuario`, `nombre`, `contrasena`, `rol`, `latitud`, `longitud`) VALUES
-(1, 'ley20', 'leylani', 1234567890, 'Ventas', 100.800003, 24.700001);
+(1, 'ley20', 'leylani', 1234567890, 'Ventas', 100.00, 205.00),
+(3, 'JusAld', 'Justin', 1234567890, 'Ventas', 139.66, 957.46);
 
 --
 -- Índices para tablas volcadas
@@ -89,13 +92,13 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `destinos`
 --
 ALTER TABLE `destinos`
-  MODIFY `id` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
