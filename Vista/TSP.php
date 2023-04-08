@@ -83,11 +83,17 @@
 
                                 <Label>No. de Interaciones</Label>
                                 <input type="Number" name="NInteraciones" id="NInteraciones" value="10000"  style="width: 55px;">
-
+                                
+                                <label for="image-select">Seleccione zona:</label>
+                                <select id="image-select">
+                                    <option value="" disabled selected>Zona</option>
+                                    <option value="singuilucan">Mapa Singuilucan</option>
+                                    <option value="zempoala">Mapa Zempoala</option>
+                                </select>
                             </div>
                         </div>
                         <div class="card bg-light">
-                            <div class="" id="sketch-container"></div>
+                            <div id="sketch-container"></div>
                         </div>
                     </section>
                 </div>
@@ -130,7 +136,7 @@
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->
-        <script src="js/scripts.js"></script>
+        <script src="../js/scripts.js"></script>
 
         <script>
         
@@ -144,12 +150,12 @@
               let points = [];
       
             // Definir algunas variables para sketch y canvas
-              let sketch;
-              let canvas;
+            let sketch;
+            let canvas;
 
             // Contador de puntos
-              let pointCount = 1;
-      
+            let pointCount = 1;
+
             // Punto de inicio
             let startPoint = {
                 x: <?php echo $longitud; ?>,
@@ -163,39 +169,51 @@
             pointList.appendChild(pointListItem);
 
             //Añadir imagen al punto de partida en el canvas
+            let imgSinguilucan;
+            let imgZempoala;
             let startPointImg;
+
             function preload() {
-                startPointImg = loadImage('../assets/img/casa.png');
+                imgSinguilucan = loadImage("../assets/img/mapa-singuilucan.jpg");
+                imgZempoala = loadImage("../assets/img/mapa-zempoala.jpg");
+                startPointImg = loadImage("../assets/img/casa.png");
             }
 
+
             function setup() {
-              // Crear el canvas
-              canvas = createCanvas(NUM_COLS * CELL_SIZE, NUM_ROWS * CELL_SIZE);
-              canvas.parent('sketch-container');
-      
-              // Color de fondo
-              stroke(GRID_COLOR);
-      
-              // Crear la cuadrícula de rectángulos
-              for (let x = 0; x < NUM_COLS; x++) {
-                for (let y = 0; y < NUM_ROWS; y++) {
-                  rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                // Crear el canvas
+                canvas = createCanvas(NUM_COLS * CELL_SIZE, NUM_ROWS * CELL_SIZE);
+                canvas.parent('sketch-container');
+
+                // Color de fondo
+                stroke(GRID_COLOR);
+
+                // Crear la cuadrícula de rectángulos
+                for (let x = 0; x < NUM_COLS; x++) {
+                    for (let y = 0; y < NUM_ROWS; y++) {
+                        rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    }
                 }
-              }
-      
-              // Cuando de click en el canvas se añade un punto
-              canvas.mouseClicked(addPoint);
-      
-              // Se añade las cordenadas
-              const drawLinesButton = document.getElementById("draw-lines");
-              drawLinesButton.addEventListener("click", drawLines);
-      
-              // Se coloca el punto de inicio
+
+                // Cuando de click en el canvas se añade un punto
+                canvas.mouseClicked(addPoint);
+
+                // Se añade las cordenadas
+                const drawLinesButton = document.getElementById("draw-lines");
+                drawLinesButton.addEventListener("click", drawLines);
+                
+                // Dibujar la imagen actual
+                imageSelect = document.getElementById("image-select");
+                imageSelect.addEventListener("change", changeImage);
+
+                // Se coloca el punto de inicio
                 image(startPointImg, startPoint.x, startPoint.y, 20, 20);
                 fill(0, 255, 0);
                 ellipse(startPoint.x, startPoint.y, 10, 10);
+                console.log("Casa :)");
+
             }
-      
+
             function addPoint() {
                 // Añadir punto de inicio al array
                 const point = {
@@ -229,27 +247,27 @@
 
             function drawLines() {
       
-            // Punto de partida
-            let startPoint = {
-                x: <?php echo $longitud; ?>,
-                y: <?php echo $latitud; ?>
-            };
-            
-              points.unshift(startPoint);
-      
-              // Color rojo del punto de inicio
-              stroke(255, 0, 0);
-      
-              // Dibujar las lineas
-              for (let i = 0; i < points.length - 1; i++) {
-                const p1 = points[i];
-                const p2 = points[i + 1];
-                line(p1.x, p1.y, p2.x, p2.y);
-              }
+                // Punto de partida
+                let startPoint = {
+                    x: <?php echo $longitud; ?>,
+                    y: <?php echo $latitud; ?>
+                };
+                
+                points.unshift(startPoint);
+        
+                // Color rojo del punto de inicio
+                stroke(255, 0, 0);
+        
+                // Dibujar las lineas
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p1 = points[i];
+                    const p2 = points[i + 1];
+                    line(p1.x, p1.y, p2.x, p2.y);
+                }
 
-              // Dibujar una línea desde el último punto al punto de inicio
-                stroke(0, 255, 0); 
-                line(points[points.length - 1].x, points[points.length - 1].y, startPoint.x, startPoint.y);
+                // Dibujar una línea desde el último punto al punto de inicio
+                    stroke(0, 255, 0); 
+                    line(points[points.length - 1].x, points[points.length - 1].y, startPoint.x, startPoint.y);
 
             }
 
@@ -272,6 +290,7 @@
                     const longitud = button.dataset.longitud;
                     const latitud = button.dataset.latitud;
                     addPointToCanvas(Number(longitud), Number(latitud));
+                    button.disabled = true; // Deshabilitar el botón
                 });
             });
 
@@ -307,7 +326,52 @@
                 pointCount++;
             }
 
-            
+            //Fondo de canvas
+            function changeImage() {
+
+                // Habilitar todos los botones addPointButtons
+                addPointButtons.forEach(button => {
+                    button.disabled = false;
+                });
+
+                // Obtener el valor seleccionado del menú desplegable
+                const imageSelect = document.getElementById("image-select");
+                const imageValue = imageSelect.value;
+
+                // Cargar la imagen correspondiente
+                switch(imageValue) {
+                    case "singuilucan":
+                        image(imgSinguilucan, 0, 0);
+                        fill(0, 255, 0);
+                        ellipse(startPoint.x, startPoint.y, 10, 10);
+                        image(startPointImg, startPoint.x, startPoint.y, 20, 20);
+                    break;
+
+                    case "zempoala":
+                        image(imgZempoala, 0, 0);
+                        fill(0, 255, 0);
+                        ellipse(startPoint.x, startPoint.y, 10, 10);
+                        image(startPointImg, startPoint.x, startPoint.y, 20, 20);
+                    break;
+
+                    default:
+                    break;
+                }
+
+                // borrar la lista de destinos
+                const pointList = document.getElementById("point-list");
+                pointList.innerHTML = "";
+                
+                // borrar los puntos dibujados
+                points = [];
+                pointCount = 1;
+
+               // Añadir el punto de inicio a la lista HTML
+                pointListItem.innerText = `Inicio.- (${startPoint.x}, ${startPoint.y})`;
+                pointList.appendChild(pointListItem);
+
+            }
+
         </script>
 
     </body>
