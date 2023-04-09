@@ -90,6 +90,16 @@
                                     <option value="singuilucan">Mapa Singuilucan</option>
                                     <option value="zempoala">Mapa Zempoala</option>
                                 </select>
+
+                                <Label>Pc</Label>
+                                <input type="Number" name="NPc" id="NPc" value="0.5"  style="width: 50px;">
+                                
+                                <Label>Pm</Label>
+                                <input type="Number" name="Pm" id="Pm" value="0.5"  style="width: 50px;">
+                                
+                                <Label>No. Soluciones</Label>
+                                <input type="Number" name="NArrays" id="NArrays" value="1"  style="width: 40px;">
+                                
                             </div>
                         </div>
                         <div class="card bg-light">
@@ -148,7 +158,14 @@
       
             // Variable para los puntos
               let points = [];
-      
+              const coordenadas = [];
+              let solucionUno = [];
+              let solucionDos = [];
+              let solucionTres = [];
+              let solucionCuatro = [];
+              let solucionCinco = [];
+              let solucionSeis = [];
+              
             // Definir algunas variables para sketch y canvas
             let sketch;
             let canvas;
@@ -167,6 +184,11 @@
             const pointListItem = document.createElement("li");
             pointListItem.innerText = `Inicio.- (${startPoint.x}, ${startPoint.y})`;
             pointList.appendChild(pointListItem);
+
+            console.log("Inicializacion de la población");
+            // Agregar el punto de inicio al array
+            coordenadas[0] = { x: startPoint.x, y: startPoint.y };
+            console.log("Inicio. - (", startPoint.x, ",",startPoint.y,")");
 
             //Añadir imagen al punto de partida en el canvas
             let imgSinguilucan;
@@ -210,7 +232,7 @@
                 image(startPointImg, startPoint.x, startPoint.y, 20, 20);
                 fill(0, 255, 0);
                 ellipse(startPoint.x, startPoint.y, 10, 10);
-                console.log("Casa :)");
+                //console.log("Casa :)");
 
             }
 
@@ -235,6 +257,10 @@
                 const pointListItem = document.createElement("li");
                 pointListItem.innerText = `${pointCount}.-  (${point.x}, ${point.y})`;
                 pointList.appendChild(pointListItem);
+                console.log(pointListItem);
+
+                coordenadas[pointCount] = { x: point.x, y: point.y };
+                //console.log(coordenadas);
 
                 // Actualizar el valor del input con el número de puntos
                 const numPoints = points.length;
@@ -268,7 +294,51 @@
                 // Dibujar una línea desde el último punto al punto de inicio
                     stroke(0, 255, 0); 
                     line(points[points.length - 1].x, points[points.length - 1].y, startPoint.x, startPoint.y);
+                    
+                    
+                // Llenar los arrays solucionUno, solucionDos, solucionTres y solucionCuatro con las mismas coordenadas
+                solucionUno = coordenadas.slice();
+                solucionDos = coordenadas.slice();
+                solucionTres = coordenadas.slice();
+                solucionCuatro = coordenadas.slice();
+                    
+                // Mezclar los arrays, excepto el primer elemento
+                solucionUno = [solucionUno[0], ...shuffleArray(solucionUno.slice(1))];
+                solucionDos = [solucionDos[0], ...shuffleArray(solucionDos.slice(1))];
+                solucionTres = [solucionTres[0], ...shuffleArray(solucionTres.slice(1))];
+                solucionCuatro = [solucionCuatro[0], ...shuffleArray(solucionCuatro.slice(1))];
 
+                // Imprimir los arrays
+                 printArrays();
+
+                    
+            }
+
+            function printArrays() {
+                const fitnessSolucionUno = calcularFitness(solucionUno);
+                const fitnessSolucionDos = calcularFitness(solucionDos);
+                const fitnessSolucionTres = calcularFitness(solucionTres);
+                const fitnessSolucionCuatro= calcularFitness(solucionCuatro);
+
+                console.log("Solución 1: ", solucionUno);
+                console.log("Fitness S1 es: ", fitnessSolucionUno);
+
+                console.log("Solución 2: ", solucionDos);
+                console.log("Fitness S2 es: ", fitnessSolucionDos);
+
+                 console.log("Solución 3: ", solucionTres);
+                console.log("Fitness S3 es: ", fitnessSolucionTres);
+
+                console.log("Solución 4: ", solucionCuatro);
+                console.log("Fitness S4 es: ", fitnessSolucionCuatro);
+                
+                //Seleccion por torneo 
+                const soluciones = [solucionUno, solucionDos, solucionTres, solucionCuatro];
+                const tamTorneo = 2;
+                const padre1 = seleccionPorTorneo(soluciones, tamTorneo);
+                const padre2 = seleccionPorTorneo(soluciones, tamTorneo);
+                
+                console.log("Los padres son: ", padre1 ," y ", padre2);
             }
 
             // Obtener el botón de borrar puntos
@@ -371,6 +441,62 @@
                 pointList.appendChild(pointListItem);
 
             }
+
+            //Cambiar el orden de los arrays
+            function shuffleArray(array) {
+            const newArray = array.slice();
+                for (let i = newArray.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+                }
+                return newArray;
+            }
+
+            //Calcular fitness
+            function calcularFitness(coordenadas) {
+                let distanciaTotal = 0;
+
+                for (let i = 0; i < coordenadas.length - 1; i++) {
+                    const p1 = coordenadas[i];
+                    const p2 = coordenadas[i + 1];
+                    //console.log("Coordenadas (", p1.x ,",", p1.y ,") con (", p2.x ,",", p2.y ,")");
+                    const distancia = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+                    //console.log("Distancia entre los puntos es: ", distancia)
+                    distanciaTotal += distancia;
+                }
+
+                // Agregar la distancia del último punto al primer punto
+                const ultimoPunto = coordenadas[coordenadas.length - 1];
+                const primerPunto = coordenadas[0];
+                //console.log("Coordenadas (", ultimoPunto.x ,",", ultimoPunto.y ,") con (", primerPunto.x ,",", primerPunto.y ,")");
+                const distanciaFinal = Math.sqrt(Math.pow(ultimoPunto.x - primerPunto.x, 2) + Math.pow(ultimoPunto.y - primerPunto.y, 2));
+                distanciaTotal += distanciaFinal;
+
+                return distanciaTotal;
+            }
+
+            //Seleccion por torneo
+            function seleccionPorTorneo(soluciones, tamTorneo) {
+                const numSoluciones = soluciones.length;
+                const indicesAleatorios = Array.from({ length: tamTorneo }, () => Math.floor(Math.random() * numSoluciones));
+                let mejorFitness = Number.NEGATIVE_INFINITY;
+                
+                let mejorSolucion;
+
+                for (const indice of indicesAleatorios) {
+                    const solucion = soluciones[indice];
+                    const fitness = calcularFitness(solucion);
+                    
+                    if (fitness > mejorFitness) {
+                    mejorFitness = fitness;
+                    mejorSolucion = solucion;
+                    }
+                }
+
+                return mejorSolucion;
+            }
+
+
 
         </script>
 
