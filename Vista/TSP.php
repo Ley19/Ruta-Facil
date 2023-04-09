@@ -76,7 +76,7 @@
                             <div class="card-body">
                             
                                 <Label>Punto de Partida</Label>
-                                <input type="text" name="DCasa" id="DCasa" value="(<?php echo $longitud; ?>,<?php echo $latitud; ?>)" disabled style="width: 190px;">
+                                <input type="text" name="DCasa" id="DCasa" value="(<?php echo $longitud; ?>,<?php echo $latitud; ?>)" disabled style="width: 130px;">
                                 
                                 <Label>No. de Destinos</Label>
                                 <input type="Number" name="NDestino" id="NDestino" value="0" disabled style="width: 50px;">
@@ -96,9 +96,6 @@
                                 
                                 <Label>Pm</Label>
                                 <input type="Number" name="Pm" id="Pm" value="0.5"  style="width: 50px;">
-                                
-                                <Label>No. Soluciones</Label>
-                                <input type="Number" name="NArrays" id="NArrays" value="1"  style="width: 40px;">
                                 
                             </div>
                         </div>
@@ -165,6 +162,8 @@
               let solucionCuatro = [];
               let solucionCinco = [];
               let solucionSeis = [];
+              let solucionSiete = [];
+              let solucionOcho = [];
               
             // Definir algunas variables para sketch y canvas
             let sketch;
@@ -301,12 +300,20 @@
                 solucionDos = coordenadas.slice();
                 solucionTres = coordenadas.slice();
                 solucionCuatro = coordenadas.slice();
+                solucionCinco = coordenadas.slice();
+                solucionSeis = coordenadas.slice();
+                solucionSiete = coordenadas.slice();
+                solucionOcho = coordenadas.slice();
                     
                 // Mezclar los arrays, excepto el primer elemento
                 solucionUno = [solucionUno[0], ...shuffleArray(solucionUno.slice(1))];
                 solucionDos = [solucionDos[0], ...shuffleArray(solucionDos.slice(1))];
                 solucionTres = [solucionTres[0], ...shuffleArray(solucionTres.slice(1))];
                 solucionCuatro = [solucionCuatro[0], ...shuffleArray(solucionCuatro.slice(1))];
+                solucionCinco = [solucionCinco[0], ...shuffleArray(solucionCinco.slice(1))];
+                solucionSeis = [solucionSeis[0], ...shuffleArray(solucionSeis.slice(1))];
+                solucionSiete = [solucionSiete[0], ...shuffleArray(solucionSiete.slice(1))];
+                solucionOcho = [solucionOcho[0], ...shuffleArray(solucionOcho.slice(1))];
 
                 // Imprimir los arrays
                  printArrays();
@@ -318,7 +325,11 @@
                 const fitnessSolucionUno = calcularFitness(solucionUno);
                 const fitnessSolucionDos = calcularFitness(solucionDos);
                 const fitnessSolucionTres = calcularFitness(solucionTres);
-                const fitnessSolucionCuatro= calcularFitness(solucionCuatro);
+                const fitnessSolucionCuatro = calcularFitness(solucionCuatro);
+                const fitnessSolucionCinco = calcularFitness(solucionCinco);
+                const fitnessSolucionSeis = calcularFitness(solucionSeis);
+                const fitnessSolucionSiete = calcularFitness(solucionSiete);
+                const fitnessSolucionOcho = calcularFitness(solucionOcho);
 
                 console.log("Solución 1: ", solucionUno);
                 console.log("Fitness S1 es: ", fitnessSolucionUno);
@@ -331,9 +342,21 @@
 
                 console.log("Solución 4: ", solucionCuatro);
                 console.log("Fitness S4 es: ", fitnessSolucionCuatro);
+
+                console.log("Solución 5: ", solucionCinco);
+                console.log("Fitness S5 es: ", fitnessSolucionCinco);
+
+                console.log("Solución 6: ", solucionSeis);
+                console.log("Fitness S6 es: ", fitnessSolucionSeis);
+
+                console.log("Solución 7: ", solucionSiete);
+                console.log("Fitness S7 es: ", fitnessSolucionSiete);
+
+                console.log("Solución 8: ", solucionOcho);
+                console.log("Fitness S8 es: ", fitnessSolucionOcho);
                 
                 //Seleccion por torneo 
-                const soluciones = [solucionUno, solucionDos, solucionTres, solucionCuatro];
+                const soluciones = [solucionUno, solucionDos, solucionTres, solucionCuatro, solucionCinco, solucionSeis, solucionSiete, solucionOcho];
                 const tamTorneo = 2;
                 const padre1 = seleccionPorTorneo(soluciones, tamTorneo);
                 const padre2 = seleccionPorTorneo(soluciones, tamTorneo);
@@ -495,8 +518,6 @@
 
                 return mejorSolucion;
             }
-
-
 
         </script>
 

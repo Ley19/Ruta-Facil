@@ -17,9 +17,11 @@
 
     session_start();
     if (isset($_SESSION["username"])) {
-    $username = $_SESSION["username"];
+        $username = $_SESSION["username"];
     } else {
-    echo "Debes iniciar sesión primero.";
+        header("Location: /index.html");
+        echo "Debes iniciar sesión primero";
+        exit(); 
     }
 
     // Actualizar los valores en la base de datos
