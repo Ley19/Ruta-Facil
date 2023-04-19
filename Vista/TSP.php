@@ -38,8 +38,8 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="inicio.php">Inicio</a></li>
-                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="TSP.php">TSP</a></li>
+                        <!--<li class="nav-item"><a class="nav-link active" href="inicio.php">Inicio</a></li>-->
+                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="TSP.php">Inicio</a></li>
                         <li class="nav-item"><a class="nav-link " aria-current="page" href="configuracion.php">Configuración</a></li>
                         <li class="nav-item"><a class="nav-link" href="info.php"><img src="../assets/img/info_d.png"></a></li>
                         <li class="nav-item dropdown">
@@ -82,7 +82,7 @@
                                 <input type="Number" name="NDestino" id="NDestino" value="0" disabled style="width: 50px;">
 
                                 <Label>No. de Interaciones</Label>
-                                <input type="Number" name="NInteraciones" id="NInteraciones" value="10000"  style="width: 55px;">
+                                <input type="Number" name="NInteraciones" id="NInteraciones" value="1000"  style="width: 75px;">
                                 
                                 <label for="image-select">Seleccione zona:</label>
                                 <select id="image-select">
@@ -91,12 +91,22 @@
                                     <option value="zempoala">Mapa Zempoala</option>
                                 </select>
 
-                                <Label>Pc</Label>
-                                <input type="Number" name="NPc" id="NPc" value="0.5"  style="width: 50px;">
+                            </div>
+                            <div class="card-body">
+                                <Label>Distancia</Label>
+                                <input type="text" disabled value="0" id="Mostar-Fitness">
+                                <Label for="pc" id="pc" title="Probabilidad de Cruce">Pc</Label>
+                                <input type="text" disabled value="0.70" style="width: 50px;" >
+                                <Label for="pm" id="pm" title="Probabilidad de Mutación">Pm</Label>
+                                <input type="text" disabled value="0.002" style="width: 50px;"  >
+                            </div>
+                            <div class="card-body">
+                                <button onclick="calcularBoton()" class="btn btn-primary" id="calcular">Calcular</button>
+                                <button onclick="VolverCalcular()" class="btn btn-primary" disabled id="volver">Volver a calcular</button>
                                 
-                                <Label>Pm</Label>
-                                <input type="Number" name="Pm" id="Pm" value="0.5"  style="width: 50px;">
-                                
+                            </div>
+                            <div class="card-body">
+                                <label for="Mensaje" id="mensaje"></label>
                             </div>
                         </div>
                         <div class="card bg-light">
@@ -112,9 +122,10 @@
                             <div class="input-group">
                                 <ul id="point-list"></ul>
                             </div>
+                            <div class="input-group">
+                                <ul id="point-list-mejor-ruta"></ul>
+                            </div>
                         </div>
-                        <button class="btn btn-primary" id="draw-lines">Calcular</button>
-                        <button class="btn btn-danger" id="clear-points">Borrar</button>
                     </div>
                     <div class="card mb-4">
                         <div class="card-header" onclick="mostrarBody()">Destinos Guardados</div>
@@ -146,7 +157,17 @@
         <script src="../js/scripts.js"></script>
 
         <script>
-        
+
+            var label = document.getElementById("pc");
+            label.addEventListener("mouseover", function() {
+            label.setAttribute("title", "Probabilidad de Cruce");
+            });
+
+            var label = document.getElementById("pm");
+            label.addEventListener("mouseover", function() {
+            label.setAttribute("title", "Probabilidad de Mutación");
+            });
+
             // Definir algunas constantes
             const NUM_COLS = 14;
             const NUM_ROWS = 10;
@@ -156,6 +177,8 @@
             // Variable para los puntos
               let points = [];
               const coordenadas = [];
+              let lineas = []; 
+              let soluciones = [];
               let solucionUno = [];
               let solucionDos = [];
               let solucionTres = [];
@@ -164,13 +187,20 @@
               let solucionSeis = [];
               let solucionSiete = [];
               let solucionOcho = [];
-              
-            // Definir algunas variables para sketch y canvas
-            let sketch;
-            let canvas;
+              let canvas;
+
+            //Variable aleatoria entre 0 y 1
+              const Pc = 0.9;
+              const Pm = 0.002;
+              let padre1 = [];
+              let padre2 = [];
+              let hijo1 = []; 
+              let hijo2 = [];
+              let GuardarValorIndividuo;
 
             // Contador de puntos
             let pointCount = 1;
+            let mejorFitnessGlobal = Infinity;
 
             // Punto de inicio
             let startPoint = {
@@ -219,10 +249,6 @@
                 // Cuando de click en el canvas se añade un punto
                 canvas.mouseClicked(addPoint);
 
-                // Se añade las cordenadas
-                const drawLinesButton = document.getElementById("draw-lines");
-                drawLinesButton.addEventListener("click", drawLines);
-                
                 // Dibujar la imagen actual
                 imageSelect = document.getElementById("image-select");
                 imageSelect.addEventListener("change", changeImage);
@@ -231,71 +257,58 @@
                 image(startPointImg, startPoint.x, startPoint.y, 20, 20);
                 fill(0, 255, 0);
                 ellipse(startPoint.x, startPoint.y, 10, 10);
-                //console.log("Casa :)");
 
             }
 
             function addPoint() {
-                // Añadir punto de inicio al array
-                const point = {
-                    x: mouseX,
-                    y: mouseY
-                };
-                points.push(point);
+                // Verificar si el punto ya ha sido agregado previamente
+                const pointExists = points.some(point => point.x === mouseX && point.y === mouseY);
+                
+                // Mostrar mensaje de aviso si el punto ya ha sido agregado
+                if (pointExists) {
+                    alert('Esta coordenada ya ha sido agregada anteriormente.');
+                    return;
+                }else{
+                     // Añadir punto de inicio al array
+                    const point = {
+                        x: mouseX,
+                        y: mouseY
+                    };
+                    points.push(point);
 
-                // Añadir punto roo
-                fill(255, 0, 0);
-                ellipse(mouseX, mouseY, 10, 10);
+                    // Añadir punto roo
+                    fill(255, 0, 0);
+                    ellipse(mouseX, mouseY, 10, 10);
 
-                // Agregar número al punto
-                fill(0);
-                text(pointCount, mouseX - 10, mouseY - 10);
+                    // Agregar número al punto
+                    fill(0);
+                    text(pointCount, mouseX - 10, mouseY - 10);
 
-                // Añadir los puntos a la lista
-                const pointList = document.getElementById("point-list");
-                const pointListItem = document.createElement("li");
-                pointListItem.innerText = `${pointCount}.-  (${point.x}, ${point.y})`;
-                pointList.appendChild(pointListItem);
-                console.log(pointListItem);
+                    // Añadir los puntos a la lista
+                    const pointList = document.getElementById("point-list");
+                    const pointListItem = document.createElement("li");
+                    pointListItem.innerText = `${pointCount}.-  (${point.x}, ${point.y})`;
+                    pointList.appendChild(pointListItem);
+                    console.log(pointListItem);
 
-                coordenadas[pointCount] = { x: point.x, y: point.y };
-                //console.log(coordenadas);
+                    coordenadas[pointCount] = { x: point.x, y: point.y };
+                    //console.log(coordenadas);
 
-                // Actualizar el valor del input con el número de puntos
-                const numPoints = points.length;
-                const numDestinoInput = document.getElementById("NDestino");
-                numDestinoInput.value = numPoints;
+                    // Actualizar el valor del input con el número de puntos
+                    const numPoints = points.length;
+                    const numDestinoInput = document.getElementById("NDestino");
+                    numDestinoInput.value = numPoints;
 
-                // Incrementar el contador de puntos
-                pointCount++;
+                    // Incrementar el contador de puntos
+                    pointCount++;
+                }
+                
+               
             }
 
-            function drawLines() {
-      
-                // Punto de partida
-                let startPoint = {
-                    x: <?php echo $longitud; ?>,
-                    y: <?php echo $latitud; ?>
-                };
-                
-                points.unshift(startPoint);
-        
-                // Color rojo del punto de inicio
-                stroke(255, 0, 0);
-        
-                // Dibujar las lineas
-                for (let i = 0; i < points.length - 1; i++) {
-                    const p1 = points[i];
-                    const p2 = points[i + 1];
-                    line(p1.x, p1.y, p2.x, p2.y);
-                }
-
-                // Dibujar una línea desde el último punto al punto de inicio
-                    stroke(0, 255, 0); 
-                    line(points[points.length - 1].x, points[points.length - 1].y, startPoint.x, startPoint.y);
-                    
-                    
+            function llenarArrays() {
                 // Llenar los arrays solucionUno, solucionDos, solucionTres y solucionCuatro con las mismas coordenadas
+                //Individuos
                 solucionUno = coordenadas.slice();
                 solucionDos = coordenadas.slice();
                 solucionTres = coordenadas.slice();
@@ -315,13 +328,231 @@
                 solucionSiete = [solucionSiete[0], ...shuffleArray(solucionSiete.slice(1))];
                 solucionOcho = [solucionOcho[0], ...shuffleArray(solucionOcho.slice(1))];
 
-                // Imprimir los arrays
-                 printArrays();
-
-                    
             }
 
-            function printArrays() {
+            function calcularBoton() {
+                padre1 = [];
+                padre2 = [];
+                hijo1 = []; 
+                hijo2 = [];
+
+                //Inicia la poblacion y se evaluan los individuos
+                llenarArrays();
+
+                // Llame a la función algoritmoTSP() aquí
+                algoritmoTSP();
+                const inputFitness = document.getElementById("Mostar-Fitness");
+                inputFitness.value = mejorFitnessGlobal;
+                document.getElementById("calcular").disabled = true;
+                document.getElementById("volver").disabled = false;
+
+            }
+
+            function VolverCalcular() {
+                let fitnessActual;
+                do {
+                    algoritmoTSP();
+                    fitnessActual = GuardarValorIndividuo;
+                } while (fitnessActual > mejorFitnessGlobal);
+                mejorFitnessGlobal = fitnessActual;
+
+                const inputFitness = document.getElementById("Mostar-Fitness");
+                inputFitness.value = mejorFitnessGlobal;
+            }
+
+            function algoritmoTSP() {
+                
+                let Total_number_of_cycles = parseInt(document.getElementById("NInteraciones").value);
+                let Number_of_cycles = 0;
+                //console.log(Total_number_of_cycles);
+                soluciones = [solucionUno, solucionDos, solucionTres, solucionCuatro, solucionCinco, solucionSeis, solucionSiete, solucionOcho];
+
+
+                do {
+                    //Seleccion de los 2 padres 
+                    [padre1, padre2, indexPadre1, indexPadre2] = SeleccionDePadres( soluciones);
+ 
+                    const randomPc = Math.random();
+
+                    if (randomPc <= Pc) {
+                        // Realiza cruce
+                        [hijo1, hijo2] = cruce(padre1, padre2);
+
+                    } else {
+                        hijo1 = padre1;
+                        hijo2 = padre2;
+                    }
+                    
+                    const randomPm = Math.random();
+                    if (randomPm <= Pm) {
+                        //mutar la descendencia de dos hijos
+                        [hijo1, hijo2] = mutacion(hijo1, hijo2);
+                    
+                    }
+
+                    //Evalua a padres y hijos
+                    const fitnessPadre1 = calcularFitness(padre1);
+                    const fitnessPadre2 = calcularFitness(padre2);
+                    const fitnessHijo1 = calcularFitness(hijo1);
+                    const fitnessHijo2 = calcularFitness(hijo2);
+
+                    // Inicializa las variables de best1 y best2
+                    let best1, best2;
+                    //Best1 es el padre1
+                    if (fitnessPadre1 <= fitnessPadre2 && fitnessPadre1 <= fitnessHijo1 && fitnessPadre1 <= fitnessHijo2) {
+                        best1 = padre1;
+                    } else if (fitnessPadre2 <= fitnessHijo1 && fitnessPadre2 <= fitnessHijo2) {
+                        best1 = padre2;
+                    } else if (fitnessHijo1 <= fitnessHijo2) {
+                        best1 = hijo1;
+                    } else {
+                        best1 = hijo2;
+                    }
+
+                    if (best1 === padre1) {
+                        if (fitnessPadre2 <= fitnessHijo1 && fitnessPadre2 <= fitnessHijo2) {
+                            best2 = padre2;
+                        } else if (fitnessHijo1 <= fitnessHijo2) {
+                            best2 = hijo1;
+                        } else {
+                            best2 = hijo2;
+                        }
+                    } else if (best1 === padre2) {
+                        if (fitnessPadre1 <= fitnessHijo1 && fitnessPadre1 <= fitnessHijo2) {
+                            best2 = padre1;
+                        } else if (fitnessHijo1 <= fitnessHijo2) {
+                            best2 = hijo1;
+                        } else {
+                            best2 = hijo2;
+                        }
+                    } else if (best1 === hijo1) {
+                        if (fitnessPadre1 <= fitnessPadre2 && fitnessPadre1 <= fitnessHijo2) {
+                            best2 = padre1;
+                        } else if (fitnessPadre2 <= fitnessHijo2) {
+                            best2 = padre2;
+                        } else {
+                            best2 = hijo2;
+                        }
+                    } else {
+                        if (fitnessPadre1 <= fitnessPadre2 && fitnessPadre1 <= fitnessHijo1) {
+                            best2 = padre1;
+                        } else if (fitnessPadre2 <= fitnessHijo1) {
+                            best2 = padre2;
+                        } else {
+                            best2 = hijo1;
+                        }
+                    }
+
+                    //Cambiar el valor de padre1 por best1 y el de padre2 por el de best2
+                    //console.log("Solucion en el index",soluciones[indexPadre1] );
+                    soluciones[indexPadre1] = best1;
+                    soluciones[indexPadre2] = best2;
+                    //console.log("Solucion en el index despues",soluciones[indexPadre1] );
+
+                   //console.log("------------------------------"); 
+                    //Actualizar lineas
+                    clear();
+                    
+                    Number_of_cycles++;
+                } while (Number_of_cycles < Total_number_of_cycles);
+
+                var label = document.getElementById("mensaje");
+                var texto2 = "Sigue los puntos para recorrer la ruta mas corta.";
+                label.innerText = texto2;
+
+
+                //Dibujar la solucion
+                    // Punto de partida
+                    let startPoint = {
+                            x: <?php echo $longitud; ?>,
+                            y: <?php echo $latitud; ?>
+                        };
+                        
+                
+                // Obtener el valor seleccionado del menú desplegable
+                const imageSelect = document.getElementById("image-select");
+                const imageValue = imageSelect.value;
+
+                // Cargar la imagen correspondiente
+                switch(imageValue) {
+                    case "singuilucan":
+                        image(imgSinguilucan, 0, 0);
+                        fill(0, 255, 0);
+                        ellipse(startPoint.x, startPoint.y, 10, 10);
+                        image(startPointImg, startPoint.x, startPoint.y, 20, 20);
+                    break;
+
+                    case "zempoala":
+                        image(imgZempoala, 0, 0);
+                        fill(0, 255, 0);
+                        ellipse(startPoint.x, startPoint.y, 10, 10);
+                        image(startPointImg, startPoint.x, startPoint.y, 20, 20);
+                    break;
+
+                    default:
+                    break;
+                }
+                
+                //Seleccionar al individuo más apto de la población;
+                let mejorIndividuo = soluciones[0];
+                let mejorFitness = calcularFitness(soluciones[0]);
+                
+                for (let i = 1; i < soluciones.length; i++) {
+                    const fitnessActual = calcularFitness(soluciones[i]);
+                    if (fitnessActual < mejorFitness) {
+                        mejorIndividuo = soluciones[i];
+                        mejorFitness = fitnessActual;
+                    }
+                }
+
+                console.log("El fitness del mejor individuo es: ", calcularFitness(mejorIndividuo));
+                
+               
+                for (let i = 0; i < mejorIndividuo.length; i++) {
+                
+                    // Añadir punto rojo
+                    fill(255, 0, 0);
+                    ellipse(mejorIndividuo[i].x, mejorIndividuo[i].y, 10, 10);
+
+                    // Agregar número al punto
+                    fill(0);
+                    text(i, mejorIndividuo[i].x - 10, mejorIndividuo[i].y - 10);
+                }
+            
+                        points.unshift(startPoint);
+
+                        // Color rojo del punto de inicio
+                        stroke(255, 0, 0);
+                        image(startPointImg, startPoint.x, startPoint.y, 20, 20);
+                        fill(0, 255, 0);
+                        ellipse(startPoint.x, startPoint.y, 10, 10);
+
+                        // Dibujar las lineas
+                        for (let i = 0; i < mejorIndividuo.length - 1; i++) {
+                            const p1 = mejorIndividuo[i];
+                            const p2 = mejorIndividuo[i + 1];
+                            const linea = line(p1.x, p1.y, p2.x, p2.y);
+                            lineas.push(linea);
+                        }
+
+                        // Dibujar una línea desde el último punto al punto de inicio
+                        stroke(0, 255, 0); 
+                        const lineaInicio = line(mejorIndividuo[mejorIndividuo.length - 1].x, mejorIndividuo[mejorIndividuo.length - 1].y, startPoint.x, startPoint.y);
+                        lineas.push(lineaInicio);
+
+                        if (mejorFitness < mejorFitnessGlobal) {
+                            mejorFitnessGlobal = mejorFitness;
+                        }
+
+                        GuardarValorIndividuo = calcularFitness(mejorIndividuo);
+                        
+
+                        return GuardarValorIndividuo;
+
+            }
+
+            function SeleccionDePadres() {
+
                 const fitnessSolucionUno = calcularFitness(solucionUno);
                 const fitnessSolucionDos = calcularFitness(solucionDos);
                 const fitnessSolucionTres = calcularFitness(solucionTres);
@@ -331,45 +562,19 @@
                 const fitnessSolucionSiete = calcularFitness(solucionSiete);
                 const fitnessSolucionOcho = calcularFitness(solucionOcho);
 
-                console.log("Solución 1: ", solucionUno);
-                console.log("Fitness S1 es: ", fitnessSolucionUno);
-
-                console.log("Solución 2: ", solucionDos);
-                console.log("Fitness S2 es: ", fitnessSolucionDos);
-
-                 console.log("Solución 3: ", solucionTres);
-                console.log("Fitness S3 es: ", fitnessSolucionTres);
-
-                console.log("Solución 4: ", solucionCuatro);
-                console.log("Fitness S4 es: ", fitnessSolucionCuatro);
-
-                console.log("Solución 5: ", solucionCinco);
-                console.log("Fitness S5 es: ", fitnessSolucionCinco);
-
-                console.log("Solución 6: ", solucionSeis);
-                console.log("Fitness S6 es: ", fitnessSolucionSeis);
-
-                console.log("Solución 7: ", solucionSiete);
-                console.log("Fitness S7 es: ", fitnessSolucionSiete);
-
-                console.log("Solución 8: ", solucionOcho);
-                console.log("Fitness S8 es: ", fitnessSolucionOcho);
                 
                 //Seleccion por torneo 
-                const soluciones = [solucionUno, solucionDos, solucionTres, solucionCuatro, solucionCinco, solucionSeis, solucionSiete, solucionOcho];
+                //soluciones = [solucionUno, solucionDos, solucionTres, solucionCuatro, solucionCinco, solucionSeis, solucionSiete, solucionOcho];
                 const tamTorneo = 2;
-                const padre1 = seleccionPorTorneo(soluciones, tamTorneo);
-                const padre2 = seleccionPorTorneo(soluciones, tamTorneo);
-                
-                console.log("Los padres son: ", padre1 ," y ", padre2);
+                padre1 = seleccionPorTorneo(soluciones, tamTorneo);
+                padre2 = seleccionPorTorneo(soluciones, tamTorneo);
+
+                const indexPadre1 = soluciones.indexOf(padre1);
+                const indexPadre2 = soluciones.indexOf(padre2);
+
+                return [padre1, padre2,indexPadre1,indexPadre2]
             }
 
-            // Obtener el botón de borrar puntos
-            const clearPointsButton = document.getElementById("clear-points");
-            
-            clearPointsButton.addEventListener("click", function() {
-                //Añadir codigo por que aun tenia errores
-            });
 
             function mostrarBody() {
                 var cardBody = document.getElementById("card-body");
@@ -410,6 +615,8 @@
                 pointListItem.innerText = `${pointCount}.- (${longitud}, ${latitud})`;
                 pointList.appendChild(pointListItem);
 
+                coordenadas[pointCount] = { x: point.x, y: point.y };
+
                 // Actualizar el valor del input con el número de puntos
                 const numPoints = points.length;
                 const numDestinoInput = document.getElementById("NDestino");
@@ -421,6 +628,8 @@
 
             //Fondo de canvas
             function changeImage() {
+
+                console.clear();
 
                 // Habilitar todos los botones addPointButtons
                 addPointButtons.forEach(button => {
@@ -457,17 +666,29 @@
                 
                 // borrar los puntos dibujados
                 points = [];
+                solucionUno = [];
+                solucionDos = [];
+                solucionTres = [];
+                solucionCuatro = [];
+                solucionCinco = [];
+                solucionSeis = [];
+                solucionSiete = [];
+                solucionOcho = [];
+                
                 pointCount = 1;
 
                // Añadir el punto de inicio a la lista HTML
                 pointListItem.innerText = `Inicio.- (${startPoint.x}, ${startPoint.y})`;
                 pointList.appendChild(pointListItem);
 
+                console.log("Inicializacion de la población");
+                console.log("Inicio. - (", startPoint.x, ",",startPoint.y,")");
+
             }
 
             //Cambiar el orden de los arrays
             function shuffleArray(array) {
-            const newArray = array.slice();
+                const newArray = array.slice();
                 for (let i = newArray.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
@@ -501,23 +722,100 @@
             //Seleccion por torneo
             function seleccionPorTorneo(soluciones, tamTorneo) {
                 const numSoluciones = soluciones.length;
-                const indicesAleatorios = Array.from({ length: tamTorneo }, () => Math.floor(Math.random() * numSoluciones));
-                let mejorFitness = Number.NEGATIVE_INFINITY;
-                
+                const indicesAleatorios = Array.from({ length: tamTorneo }, () =>
+                    Math.floor(Math.random() * numSoluciones)
+                );
+                let mejorFitness = Number.POSITIVE_INFINITY;
                 let mejorSolucion;
 
                 for (const indice of indicesAleatorios) {
                     const solucion = soluciones[indice];
                     const fitness = calcularFitness(solucion);
-                    
-                    if (fitness > mejorFitness) {
+                    //console.log("Puso a competir",fitness);
+
+                    if (fitness < mejorFitness) {
                     mejorFitness = fitness;
                     mejorSolucion = solucion;
                     }
                 }
+                //console.log("Gano", calcularFitness(mejorSolucion));
 
                 return mejorSolucion;
             }
+
+            function cruce(padre1, padre2) {
+                const n = padre1.length; // longitud de los padres
+                const puntoCruce = Math.floor(Math.random() * n); // selecciona un punto de cruce aleatorio
+                //console.log("El punto de cruce es: ", puntoCruce);
+                
+                const hijo1 = [...padre1.slice(0, puntoCruce), ...padre2.slice(puntoCruce)];
+                const hijo2 = [...padre2.slice(0, puntoCruce), ...padre1.slice(puntoCruce)];
+                
+                let valoresHijo1 = [...hijo1.slice(0, puntoCruce), ...new Array(n - puntoCruce)];
+                let valoresHijo2 = [...hijo2.slice(0, puntoCruce), ...new Array(n - puntoCruce)];
+                
+                // Copiar valores únicos del padre2 al hijo1
+                for (let i = 0; i < n; i++) {
+                    if (!valoresHijo1.includes(padre2[i])) {
+                    for (let j = 0; j < n - puntoCruce; j++) {
+                        if (valoresHijo1[puntoCruce + j] === undefined) {
+                        valoresHijo1[puntoCruce + j] = padre2[i];
+                        break;
+                        }
+                    }
+                    }
+                }
+                
+                // Copiar valores únicos del padre1 al hijo2
+                for (let i = 0; i < n; i++) {
+                    if (!valoresHijo2.includes(padre1[i])) {
+                    for (let j = 0; j < n - puntoCruce; j++) {
+                        if (valoresHijo2[puntoCruce + j] === undefined) {
+                        valoresHijo2[puntoCruce + j] = padre1[i];
+                        break;
+                        }
+                    }
+                    }
+                }
+                
+                hijo1.splice(puntoCruce, n - puntoCruce, ...valoresHijo1.slice(puntoCruce));
+                hijo2.splice(puntoCruce, n - puntoCruce, ...valoresHijo2.slice(puntoCruce));
+                
+                return [hijo1, hijo2];
+            }
+
+            //Mutacion
+            function mutacion(hijo1, hijo2) {
+                const tamCromosoma = hijo1.length;
+
+                // Seleccionar dos posiciones aleatorias diferentes, empezando en la posición 1
+                let pos1 = Math.floor(Math.random() * (tamCromosoma - 1)) + 1;
+                let pos2 = Math.floor(Math.random() * (tamCromosoma - 1)) + 1;
+
+                // Verificar que las posiciones sean diferentes y que no incluyan la posición 0
+                while (pos1 === pos2 || pos1 === 0 || pos2 === 0 ) {
+                    pos1 = Math.floor(Math.random() * (tamCromosoma - 1)) + 1;
+                    pos2 = Math.floor(Math.random() * (tamCromosoma - 1)) + 1;
+                }
+
+                //console.log("La posicion 1 es: ", pos1, "La posicion 2 es: ", pos2);
+
+                // Intercambiamos los valores de los alelos de los hijos
+                const temp = hijo1[pos1];
+                hijo1[pos1] = hijo1[pos2];
+                hijo1[pos2] = temp;
+
+                const temp2 = hijo2[pos1];
+                hijo2[pos1] = hijo2[pos2];
+                hijo2[pos2] = temp2;
+
+               /* for (let i = 0; i < hijo2.length; i++) {
+                 console.log("Hijo2 pos", i, ":", hijo2[i]);
+                }*/
+
+                return [hijo1, hijo2];
+            }
+
 
         </script>
 

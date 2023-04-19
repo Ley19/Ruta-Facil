@@ -36,8 +36,8 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="#">Inicio</a></li>
-                        <li class="nav-item"><a class="nav-link" aria-current="page" href="TSP.php">TSP</a></li>
+                        <!--<li class="nav-item"><a class="nav-link active" href="inicio.php">Inicio</a></li>-->
+                        <li class="nav-item"><a class="nav-link" aria-current="page" href="TSP.php">Inicio</a></li>
                         <li class="nav-item"><a class="nav-link active" aria-current="page" href="configuracion.php">Configuración</a></li>
                         <li class="nav-item"><a class="nav-link" href="info.php"><img src="../assets/img/info_d.png"></a></li>
                         <li class="nav-item dropdown">
@@ -82,8 +82,10 @@
                             </div>
                             <div class="card-body">
                                 <Label>Punto de inicio: </Label>
-                                <input type="number" name="CoordenadaX" id="CoordenadaX" value="<?php echo $longitud; ?>" style="width: 120px;">
-                                <input type="number" name="CoordenadaY" id="CoordenadaY" value="<?php echo $latitud; ?>" style="width: 120px;"> 
+                                <input type="number"  min="0" max="700" name="CoordenadaX" id="CoordenadaX" value="<?php echo $longitud; ?>" style="width: 120px;">
+                                <input type="number"  min="0" max="500"name="CoordenadaY" id="CoordenadaY" value="<?php echo $latitud; ?>" style="width: 120px;"> 
+                                <span id="errorCoordenadaY" style="color: red;"></span>
+                                <span id="errorCoordenadaX" style="color: red;"></span>
                                 <button class='btn btn-update' onclick="actualizarDatos()"> <img src='../assets/img/editar.png' alt='Editar'></button>
                             </div>
                         </div>
@@ -107,16 +109,16 @@
                                             <table class="table">
                                                 <thead>
                                                     <tr>
-                                                        <th><label for="latitud">Longitud (X)</label></th>
-                                                        <th><label for="longitud">Latitud (Y)</label></th>
+                                                        <th><label for="latitud"> (X)</label></th>
+                                                        <th><label for="longitud"> (Y)</label></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody >
-                                                    <td><input type="number" class="form-control" id="latitud" name="latitud" step="0.000001" required></td>
-                                                    <td><input type="number" class="form-control" id="longitud" name="longitud" step="0.000001" required></td>
+                                                    <td><input type="number" class="form-control" id="latitud" name="latitud"  required></td>
+                                                    <td><input type="number" class="form-control" id="longitud" name="longitud"  required></td>
                                                 </tbody>
                                         </table>
-                                            <button type="submit" class="btn btn-primary">Agregar</button>
+                                            <button type="submit" onclick="Validar()" class="btn btn-primary">Agregar</button>
                                         </form>
                                     </div>
                             </div>
@@ -155,28 +157,68 @@
         <script src="../js/main.js"></script>
 
         <script>
+
+            function Validar() {
+               
+            }
+
+
+            function validarCoordenadaY() {
+                var coordenadaY = document.getElementById("CoordenadaY").value;
+                var errorCoordenadaY = document.getElementById("errorCoordenadaY");
+                if (coordenadaY < 0 || coordenadaY > 500) {
+                    errorCoordenadaY.innerHTML = "Valor de Y entre 0 y 500.";
+                } else {
+                    errorCoordenadaY.innerHTML = "";
+                }
+            }
+
+            function validarCoordenadaX() {
+                var coordenadaX = document.getElementById("CoordenadaX").value;
+                var errorCoordenadaX = document.getElementById("errorCoordenadaX");
+                if (coordenadaX < 0 || coordenadaX > 700) {
+                    errorCoordenadaX.innerHTML = "Valor de X entre 0 y 700.";
+                } else {
+                    errorCoordenadaX.innerHTML = "";
+                }
+            }
+
             function mostrarBody() {
                 var cardBody = document.getElementById("card-body");
                 cardBody.classList.toggle("mostrar-body");
             }
 
             function actualizarDatos() {
-            // Obtener los valores actualizados de los campos de entrada
-            var longitud = document.getElementById("CoordenadaX").value;
-            var latitud = document.getElementById("CoordenadaY").value;
+                // Validar las coordenadas
+                validarCoordenadaY();
+                validarCoordenadaX();
 
-            // Crear la solicitud AJAX
-            var xmlhttp = new XMLHttpRequest();
-            xmlhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                // Mostrar el mensaje de datos actualizados
-                alert("Datos actualizados correctamente");
+                // Verificar si hay mensajes de error presentes
+                var errorCoordenadaX = document.getElementById("errorCoordenadaX").innerHTML;
+                var errorCoordenadaY = document.getElementById("errorCoordenadaY").innerHTML;
+                if (errorCoordenadaX != "" || errorCoordenadaY != "") {
+                    // Mostrar un mensaje de error y salir de la función
+                    alert("Por favor corrija los errores antes de actualizar los datos.");
+                    return;
                 }
-            };
-            xmlhttp.open("POST", "actualizar_datos.php", true);
-            xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            xmlhttp.send("longitud=" + longitud + "&latitud=" + latitud);
-            }
+
+                // Obtener los valores actualizados de los campos de entrada
+                var longitud = document.getElementById("CoordenadaX").value;
+                var latitud = document.getElementById("CoordenadaY").value;
+
+                // Crear la solicitud AJAX
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                    // Mostrar el mensaje de datos actualizados
+                    alert("Datos actualizados correctamente");
+                    }
+                };
+                xmlhttp.open("POST", "actualizar_datos.php", true);
+                xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                xmlhttp.send("longitud=" + longitud + "&latitud=" + latitud);
+                }
+
 
         </script>
 
