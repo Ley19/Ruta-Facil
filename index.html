@@ -5,25 +5,25 @@
     <title>Login</title>
     <!-- Estilos -->
     <link rel="icon" type="image/x-icon" href="assets/img/icono.png" />
-    <link href="css/styles_login.css" rel="stylesheet" />
+    <link href="css/stylesLogin.css" rel="stylesheet" />
   </head>
   <body>
-    <h1>Login</h1>
-    <section class="mb-5" style="margin: 20px;">
-        <div class="card bg-light" style="width: 400px;">
-            <div class="card-body">
-            
-                <form action="login.php" method="POST">
-                    <label for="username">Username:</label>
-                    <input type="text" name="username" id="username" required><br>
-                    <label for="password">Password:</label>
-                    <input type="password" name="password" id="password" required><br>
-                    <input type="submit" value="Login">
-                  </form>
-
-            </div>
+    <div class="container">
+      <section>
+        <div class="card">
+          <img src="assets\img/usuario.png"> 
+          <h1>Inicio de Sesion</h1>
+          <div class="card-body">  
+            <form action="login.php" method="POST">
+              <label for="username">Usuario:</label>
+              <input type="text" name="username" id="username" required>
+              <label for="password">Contraseña:</label>
+              <input type="password" name="password" id="password" required>
+              <button type="submit">Acceder</button>           
+            </form>
+          </div>
         </div>
-    </section>
-
+      </section>
+    </div>
   </body>
 </html>
